@@ -2,8 +2,8 @@ name: Supabase Backup
 
 on:
   schedule:
-    - cron: '0 3 * * *'  # Todos los días a las 3:00 UTC
-  workflow_dispatch:      # También se puede ejecutar manualmente
+    - cron: '0 3 * * *'
+  workflow_dispatch:
 
 jobs:
   backup:
@@ -14,7 +14,9 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Install Supabase CLI
-        run: npm install -g supabase
+        run: |
+          curl -sL https://github.com/supabase/cli/releases/latest/download/supabase_linux_amd64.tar.gz | tar -xz
+          sudo mv supabase /usr/local/bin/supabase
 
       - name: Create DB backup
         run: |
@@ -28,3 +30,4 @@ jobs:
           git add backups/
           git commit -m "Backup: $(date -u +"%Y-%m-%dT%H:%M:%SZ")" || echo "No changes to commit"
           git push
+
