@@ -1,15 +1,20 @@
 name: Backup Supabase DB
 
 on:
-  workflow_dispatch:  # Para poder lanzar manualmente
+  workflow_dispatch:
 
 jobs:
   backup:
-    runs-on: self-hosted  # Usamos el runner que configuraste (Windows)
+    runs-on: self-hosted
 
     steps:
-      - name: Crear carpeta backups
-        run: mkdir backups
+      - name: Crear carpeta backups si no existe
+        run: |
+          if (-Not (Test-Path -Path backups)) {
+            mkdir backups
+          } else {
+            Write-Host "La carpeta backups ya existe."
+          }
         shell: powershell
 
       - name: Descargar y descomprimir Supabase CLI
@@ -20,4 +25,11 @@ jobs:
 
       - name: Agregar Supabase CLI al PATH
         run: echo "::add-path::$(pwd)/supabase-cli"
+        shell: powershell
 
+      - name: Ejecutar backup con Supabase CLI
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: |
+          ./supabase-cli/supabase db dump --file backups/backup-$(Get-Date -Format "yyyyMMddHHmmss").sql
+        shell: powershell
