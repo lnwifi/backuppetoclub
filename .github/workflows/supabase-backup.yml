@@ -19,7 +19,7 @@ jobs:
 
       - name: Descargar y descomprimir Supabase CLI
         run: |
-          Invoke-WebRequest -Uri https://github.com/supabase/cli/releases/latest/download/supabase_windows_amd64.zip -OutFile supabase.zip
+          Invoke-WebRequest -Uri https://github.com/supabase/cli/releases/download/v1.59.3/supabase_x86_64-pc-windows-msvc.zip -OutFile supabase.zip
           Expand-Archive -Path supabase.zip -DestinationPath ./supabase-cli
         shell: powershell
 
