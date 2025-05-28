@@ -1,4 +1,4 @@
-name: Backup Supabase DB
+name: Backup Supabase DB con Docker en Windows runner
 
 on:
   workflow_dispatch:
@@ -9,27 +9,18 @@ jobs:
 
     steps:
       - name: Crear carpeta backups si no existe
+        shell: powershell
         run: |
-          if (-Not (Test-Path -Path backups)) {
-            mkdir backups
+          if (-not (Test-Path -Path backups)) {
+            New-Item -ItemType Directory -Path backups
           } else {
             Write-Host "La carpeta backups ya existe."
           }
-        shell: powershell
 
-      - name: Descargar y descomprimir Supabase CLI
-        run: |
-          Invoke-WebRequest -Uri https://github.com/supabase/cli/releases/download/v1.59.3/supabase_x86_64-pc-windows-msvc.zip -OutFile supabase.zip
-          Expand-Archive -Path supabase.zip -DestinationPath ./supabase-cli
+      - name: Ejecutar pg_dump con Docker
         shell: powershell
-
-      - name: Agregar Supabase CLI al PATH
-        run: echo "::add-path::$(pwd)/supabase-cli"
-        shell: powershell
-
-      - name: Ejecutar backup con Supabase CLI
         env:
           SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
         run: |
-          ./supabase-cli/supabase db dump --file backups/backup-$(Get-Date -Format "yyyyMMddHHmmss").sql
-        shell: powershell
+          $timestamp = Get-Date -Format "yyyyMMddHHmmss"
+          docker run --rm -v ${PWD}:/backup postgres:15 pg_dump $Env:SUPABASE_DB_URL > backups/backup-$timestamp.sql
