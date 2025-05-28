@@ -15,7 +15,8 @@ jobs:
 
       - name: Install Supabase CLI
         run: |
-          curl -sL https://github.com/supabase/cli/releases/latest/download/supabase_linux_amd64.tar.gz | tar -xz
+          Invoke-WebRequest -Uri https://github.com/supabase/cli/releases/latest/download/supabase_linux_amd64.tar.gz -OutFile supabase.tar.gz
+tar -xzf supabase.tar.gz
           sudo mv supabase /usr/local/bin/supabase
 
       - name: Create DB backup
