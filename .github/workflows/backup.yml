@@ -1,0 +1,38 @@
+name: Backup Supabase
+
+on:
+  workflow_dispatch:
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Crear carpeta de backups
+        run: mkdir -p backups
+
+      - name: Generar timestamp
+        id: vars
+        run: echo "timestamp=$(date +'%Y%m%d%H%M%S')" >> $GITHUB_ENV
+
+      - name: Hacer backup con pg_dump
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: |
+          docker run --rm \
+            -e PGPASSWORD=$(echo $SUPABASE_DB_URL | sed -E 's|.*://[^:]+:([^@]+)@.*|\1|') \
+            postgres:15 \
+            pg_dump \
+              -h $(echo $SUPABASE_DB_URL | sed -E 's|.*@([^:/]+):.*|\1|') \
+              -p 5432 \
+              -U postgres \
+              -d postgres \
+              -F c \
+              -f backup.dump
+          mv backup.dump backups/backup_$timestamp.dump
+
+      - name: Subir el backup como artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: supabase-backup-${{ env.timestamp }}
+          path: backups/backup_${{ env.timestamp }}.dump
